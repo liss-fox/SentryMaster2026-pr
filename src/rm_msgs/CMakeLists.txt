@@ -9,6 +9,9 @@ find_package(rosidl_default_generators REQUIRED)
 rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/ChassisData.msg"
   "msg/RefereeData.msg"
+  "msg/DecisionToDriver.msg"
+  "msg/DecisionToPlanner.msg"
+  "msg/PlannerToDriver.msg"
 
   DEPENDENCIES
     std_msgs
