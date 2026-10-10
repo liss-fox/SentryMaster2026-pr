@@ -1,7 +1,7 @@
 import rclpy
 from rclpy.node import Node
 from tf2_ros import Buffer, TransformListener
-from rm_msgs.msg import RefereeData, ChassisData
+from rm_msgs.msg import RefereeData, ChassisData, DecisionToDriver, DecisionToPlanner
 from nav_msgs.msg import Odometry
 
 class DecisionNode(Node):
@@ -33,6 +33,21 @@ class DecisionNode(Node):
             qos_profile=10,
         )
 
+        self.planner_publer = self.create_publisher(
+            msg_type= DecisionToPlanner,
+            topic="/decision_to_planner",
+            qos_profile=10,
+        )
+
+        self.driver_publer = self.create_publisher(
+            msg_type= DecisionToDriver,
+            topic="/decision_to_driver",
+            qos_profile=10,
+        )
+
+        timer_period = 0.1
+        self.decision_timer =  self.create_timer(timer_period, self.timer_callback)
+
         print("\33[32m sentry_decision_node has been built \33[0m", flush=True)
 
     def referee_callback(self, msg : RefereeData) -> None:
@@ -43,6 +58,17 @@ class DecisionNode(Node):
 
     def chassis_callback(self, msg : ChassisData) -> None:
         pass
+
+    def timer_callback(self):
+        msg_to_planner = DecisionToPlanner()
+        msg_to_planner.x = 1.0
+        msg_to_planner.y = 2.0
+        msg_to_planner.is_spinning = False
+        self.planner_publer.publish(msg_to_planner)
+
+        msg_to_driver = DecisionToDriver()
+        msg_to_driver.posture = 3
+        self.driver_publer.publish(msg_to_driver)
 
 def cleanup_node(node: Node) -> None:
     node.destroy_node()
