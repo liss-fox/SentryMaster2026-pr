@@ -5,9 +5,13 @@ public:
     SentryPlannerNode(std::string name);
 
 private:
+
     rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odom_suber;
 
     rclcpp::Subscription<ChassisDataMsg>::SharedPtr chassis_data_suber;
+
+    rclcpp::Publisher<PlannerToDriverMsg>::SharedPtr publisher_;
+    rclcpp::TimerBase::SharedPtr timer_;
 
     // 坐标变换接收者
     std::shared_ptr<tf2_ros::Buffer> tf_buffer;
@@ -15,4 +19,5 @@ private:
     
     void ChassisInfoCallback(const ChassisDataMsg::SharedPtr msg);
     void OdomCallBack(const nav_msgs::msg::Odometry::SharedPtr msg);
+    void TimerCallback();
 };

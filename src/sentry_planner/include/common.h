@@ -16,6 +16,12 @@ using OdomMsg = nav_msgs::msg::Odometry;
 #include "rm_msgs/msg/chassis_data.hpp"
 using ChassisDataMsg = rm_msgs::msg::ChassisData;
 
+#include "rm_msgs/msg/decision_to_planner.hpp"
+using DecisionToPlannerMsg = rm_msgs::msg::DecisionToPlanner;
+
+#include "rm_msgs/msg/planner_to_driver.hpp"
+using PlannerToDriverMsg = rm_msgs::msg::PlannerToDriver;
+
 inline void info_log() {std::cout << "\33[0m" << std::endl;}
 // 发布绿色信息
 template<typename T, typename... Args>
