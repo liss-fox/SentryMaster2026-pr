@@ -8,6 +8,12 @@ using RefereeMsg = rm_msgs::msg::RefereeData;
 #include <rm_msgs/msg/chassis_data.hpp>
 using ChassisMsg = rm_msgs::msg::ChassisData;
 
+#include "rm_msgs/msg/planner_to_driver.hpp"
+using PlannerToDriverMsg = rm_msgs::msg::PlannerToDriver;
+
+#include "rm_msgs/msg/decision_to_driver.hpp"
+using DecisionToDriverMsg = rm_msgs::msg::DecisionToDriver;
+
 #include <tf2_ros/transform_broadcaster.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 

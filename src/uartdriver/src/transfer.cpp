@@ -6,6 +6,10 @@ Transfer::Transfer(rclcpp::Node *node, std::shared_ptr<serial::Serial> _serial_p
 
     referee_puber = node->create_publisher<RefereeMsg>("referee_data", 10);
     chassis_puber = node->create_publisher<ChassisMsg>("chassis_data", 10);
+
+    chassis_control.sentry_posture = 3;
+    planner_message_suber = node->create_subscription<PlannerToDriverMsg>("/planner_to_driver", 10, std::bind(&Transfer::PlannerMessageCallBack, this, std::placeholders::_1));
+    decision_message_suber = node->create_subscription<DecisionToDriverMsg>("/decision_to_driver", 10, std::bind(&Transfer::DecisionMessageCallBack, this, std::placeholders::_1));
 }
 
 
@@ -55,4 +59,19 @@ bool Transfer::send_serial_packet(const std::vector<uint8_t> &datas, const std::
         error_log("failed to send ", tag, ": ", ex.what());
         return false;
     }
+}
+
+
+void Transfer::PlannerMessageCallBack(const PlannerToDriverMsg::SharedPtr msg){
+    chassis_control.vx = msg->vx*1000;
+    chassis_control.vy = msg->vy*1000;
+    chassis_control.wz = msg->wz*180.0 / M_PI;
+    send_serial_packet(
+        trans_struct_uint8<ChassisControl>(chassis_control_id, chassis_control, CRCMode::crc16),
+        "chassis packet"
+    );
+}
+
+void Transfer::DecisionMessageCallBack(const DecisionToDriverMsg::SharedPtr msg){
+    chassis_control.sentry_posture = msg->posture;
 }

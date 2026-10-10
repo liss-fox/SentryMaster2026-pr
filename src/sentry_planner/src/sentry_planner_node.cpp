@@ -14,7 +14,7 @@ SentryPlannerNode::SentryPlannerNode(std::string name):Node(name){
     chassis_data_suber = create_subscription<ChassisDataMsg>("/chassis_data", 10, std::bind(&SentryPlannerNode::ChassisInfoCallback, this, std::placeholders::_1));
     decision_suber = create_subscription<DecisionToPlannerMsg>("/decision_to_planner", 10, std::bind(&SentryPlannerNode::DecisionCallBack, this, std::placeholders::_1));
 
-    publisher_ = this->create_publisher<PlannerToDriverMsg>("/planner_cmd", 10);
+    publisher_ = this->create_publisher<PlannerToDriverMsg>("/planner_to_driver", 10);
     timer_ = this->create_wall_timer(20ms, std::bind(&SentryPlannerNode::TimerCallback, this));
 
     info_log(name, "has been built!");
@@ -42,5 +42,6 @@ void SentryPlannerNode::TimerCallback() {
     auto message = PlannerToDriverMsg();
     message.vx = 1.0f;
     publisher_->publish(message);
-    RCLCPP_INFO(this->get_logger(), "Published: '%f'", message.vx);
+    RCLCPP_INFO_THROTTLE(this->get_logger(), *this->get_clock(), 1000,
+    "Published: '%f'", message.vx);
 }
