@@ -5,10 +5,9 @@ public:
     SentryPlannerNode(std::string name);
 
 private:
-
-    float target_x {}, target_y {};
-    double max_speed {}, goal_tolerance{};
-    bool is_spinning {};
+     
+    double max_speed {}, goal_tolerance {}, target_x {}, target_y {};
+    bool is_spinning {}, has_odom {};
 
     double odom_x {}, odom_y {}, odom_yaw {};
 

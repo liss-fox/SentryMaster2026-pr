@@ -33,6 +33,7 @@ void SentryPlannerNode::OdomCallBack(const OdomMsg::SharedPtr msg) {
     odom_x = msg->pose.pose.position.x;
     odom_y = msg->pose.pose.position.y;
     odom_yaw = tf2::getYaw(msg->pose.pose.orientation);
+    has_odom = true;
 }
 
 void SentryPlannerNode::DecisionCallBack(const DecisionToPlannerMsg::SharedPtr msg){
@@ -45,8 +46,28 @@ void SentryPlannerNode::DecisionCallBack(const DecisionToPlannerMsg::SharedPtr m
 
 void SentryPlannerNode::TimerCallback() {
     auto message = PlannerToDriverMsg();
-    message.vx = 1.0f;
+    
+    if (!has_odom){
+        publisher_->publish(message);
+        RCLCPP_INFO_THROTTLE(this->get_logger(), *this->get_clock(), 1000,
+        "No odom, stop: '%f' '%f'", message.vx, message.vy);
+        return;
+    }
+    
+    double dx = target_x - odom_x;
+    double dy = target_y - odom_y;
+    double dist = std::hypot(dx, dy);
+
+    if (dist < goal_tolerance){
+        message.vx = 0.0;
+        message.vy = 0.0;
+    }
+    else {
+        message.vx = dx / dist * max_speed;
+        message.vy = dy / dist * max_speed;
+    }
+
     publisher_->publish(message);
     RCLCPP_INFO_THROTTLE(this->get_logger(), *this->get_clock(), 1000,
-    "Published: '%f'", message.vx);
+    "Published: '%f' '%f'", message.vx, message.vy);
 }
