@@ -7,7 +7,10 @@ public:
 private:
 
     float target_x {}, target_y {};
+    double max_speed {}, goal_tolerance{};
     bool is_spinning {};
+
+    double odom_x {}, odom_y {}, odom_yaw {};
 
     rclcpp::Subscription<OdomMsg>::SharedPtr odom_suber;
     rclcpp::Subscription<ChassisDataMsg>::SharedPtr chassis_data_suber;

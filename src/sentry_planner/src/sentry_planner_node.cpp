@@ -17,7 +17,10 @@ SentryPlannerNode::SentryPlannerNode(std::string name):Node(name){
     publisher_ = this->create_publisher<PlannerToDriverMsg>("/planner_to_driver", 10);
     timer_ = this->create_wall_timer(20ms, std::bind(&SentryPlannerNode::TimerCallback, this));
 
-    info_log(name, "has been built!");
+    max_speed = this->declare_parameter<double>("max_speed", 0.5);
+    goal_tolerance = this->declare_parameter<double>("goal_tolerance", 0.1);
+
+    info_log(name, "has been built! Parameters: ", max_speed, goal_tolerance);
 }
 
 // 底盘信息回调
@@ -27,7 +30,9 @@ void SentryPlannerNode::ChassisInfoCallback(const ChassisDataMsg::SharedPtr msg)
 
 // 定位节点位置回调
 void SentryPlannerNode::OdomCallBack(const OdomMsg::SharedPtr msg) {
-
+    odom_x = msg->pose.pose.position.x;
+    odom_y = msg->pose.pose.position.y;
+    odom_yaw = tf2::getYaw(msg->pose.pose.orientation);
 }
 
 void SentryPlannerNode::DecisionCallBack(const DecisionToPlannerMsg::SharedPtr msg){
