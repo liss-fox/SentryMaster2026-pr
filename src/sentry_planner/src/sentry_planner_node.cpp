@@ -63,8 +63,13 @@ void SentryPlannerNode::TimerCallback() {
         message.vy = 0.0;
     }
     else {
-        message.vx = dx / dist * max_speed;
-        message.vy = dy / dist * max_speed;
+    // speed on the field
+    double vx_field = dx / dist * max_speed;
+    double vy_field = dy / dist * max_speed;
+
+    // speen for the robot with respect to turning
+    message.vx =  std::cos(odom_yaw) * vx_field + std::sin(odom_yaw) * vy_field;
+    message.vy = -std::sin(odom_yaw) * vx_field + std::cos(odom_yaw) * vy_field;
     }
 
     publisher_->publish(message);

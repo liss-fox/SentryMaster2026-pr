@@ -1,6 +1,7 @@
 #pragma once
 #include <rclcpp/rclcpp.hpp>
 
+#include <cmath>
 #include <tf2/utils.h>
 #include <tf2_ros/buffer.h>
 #include <tf2/LinearMath/Quaternion.h>
