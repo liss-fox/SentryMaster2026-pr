@@ -6,8 +6,8 @@ public:
 
 private:
      
-    double max_speed {}, goal_tolerance {}, target_x {}, target_y {};
-    bool is_spinning {}, has_odom {};
+    double max_speed {}, goal_tolerance {}, target_x {}, target_y {}, spin_speed {};
+    bool is_spinning {}, has_odom {}, has_target {};
 
     double odom_x {}, odom_y {}, odom_yaw {};
 

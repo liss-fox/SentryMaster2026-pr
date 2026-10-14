@@ -3,3 +3,4 @@
     test_param: 1
     max_speed: 0.5
     goal_tolerance: 0.2
+    spin_speed: 3.0
