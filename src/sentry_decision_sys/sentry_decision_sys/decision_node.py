@@ -1,5 +1,8 @@
 import rclpy
 import math
+import os
+import yaml
+from ament_index_python.packages import get_package_share_directory
 from rclpy.node import Node
 from tf2_ros import Buffer, TransformListener
 from rm_msgs.msg import RefereeData, ChassisData, DecisionToDriver, DecisionToPlanner
@@ -11,31 +14,30 @@ class DecisionNode(Node):
         # TF 监听器
         self.tf_buffer = Buffer()
         self.tf_listener = TransformListener(self.tf_buffer, self)
+
+        config_path = os.path.join(
+            get_package_share_directory("sentry_decision_sys"),
+            "config",
+            "decision.yaml",
+        )
+
+        with open(config_path) as f:
+            data = yaml.safe_load(f)
+
+        self.points = data["points"]
+        self.tasks = data["tasks"]
+        self.goal_tolerance = data["goal_tolerance"]
+        self.stay_margin = data["stay_margin"]
+        self.use_game_time = data["use_game_time"]
+
         self.game_time = 300
-        self.goal_tolerance = 0.2
-        self.stay_margin = 1.0
+        self.task_index = 0
         
         self.odom_x = 0.0
         self.odom_y = 0.0
 
         self.has_odom = False
         self.stay_start = None
-
-        self.task_index = 0
-
-        self.points = {
-            "supply": (1.0, 0.0),
-            "center": (3.0, 2.0),
-            "trap":   (0.0, 3.0),
-            "bunker": (-1.0, 1.0),
-        }
-
-        self.tasks = [
-            {"type": "move", "point": "supply", "spin": True,  "posture": 3},
-            {"type": "stay", "point": "supply", "time": 5,  "spin": False, "posture": 1},
-            {"type": "move", "point": "center", "spin": True,  "posture": 3},
-            {"type": "stay", "point": "center", "time": 20, "spin": False, "posture": 1}
-        ]
 
         self.referee_suber = self.create_subscription(
             msg_type=RefereeData,

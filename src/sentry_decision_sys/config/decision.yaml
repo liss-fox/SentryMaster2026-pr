@@ -1,0 +1,11 @@
+goal_tolerance: 0.2
+stay_margin: 1.0
+use_game_time: false
+
+points:
+  supply: [2.0, 1.0]
+  center: [3.0, 2.0]
+
+tasks:
+  - {type: move, point: supply, spin: true, posture: 3}
+  - {type: stay, point: supply, time: 5, spin: false, posture: 1}
