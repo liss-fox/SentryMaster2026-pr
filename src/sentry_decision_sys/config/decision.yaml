@@ -1,11 +1,94 @@
-goal_tolerance: 0.2
-stay_margin: 1.0
-use_game_time: false
+# SentryMaster 2026 — decision
+# Start: 启动区, robot facing the center of the field.
+# Odometry axes: X right, Y up (on the map), start = (0, 0). Meters.
+# Scale verified by field measurements (2 distances, error < 0.2 m).
+# Route corners taken from a sketch: ±0.5 m, refine during field training.
+
+goal_tolerance: 0.2      # m, distance at which the goal counts as reached
+stay_margin: 1.0         # s, extra time added to each stay
+use_game_time: false     # no match running during training -> ignore match time
 
 points:
-  supply: [2.0, 1.0]
-  center: [3.0, 2.0]
+  # corridor from start down to 补给区
+  p1: [2.1, 0.0]         # right of start, past 地堡; slope to 梯形高地 also starts here
+  p2: [2.3, -4.3]        # down along the pillars
+  p3: [3.5, -4.3]
+  p4: [3.5, -5.7]
+  p5: [0.1, -6.0]        # left along the beam
+  supply: [0.2, -8.0]    # 补给区
 
+  # 起伏路段 -> 中央高地 (bumps run vertically, drive along X across them)
+  c1: [3.8, -8.0]        # end of 起伏路段, same Y as supply
+  c2: [6.7, -7.0]        # foot of the ramp
+  center: [7.8, -1.5]    # 中央高地
+
+  # slope -> 梯形高地
+  t1: [4.3, 3.2]         # top of the slope
+  trap: [0.9, 4.1]       # 梯形高地
+
+  # 地堡, approach from below
+  b1: [0.65, -3.5]       # below 地堡
+  bunker: [0.65, -1.65]  # center of 地堡
+
+# spin: false on 起伏路段 and slopes (allowed by the rules, safer)
+# posture: 3 = 移动 (moving), 1 = 得分 (while staying, score x1.5)
+# deadline / wait_until (seconds since match start) are not used by the code yet
 tasks:
+  # start -> 补给区
+  - {type: move, point: p1, spin: true, posture: 3}
+  - {type: move, point: p2, spin: true, posture: 3}
+  - {type: move, point: p3, spin: true, posture: 3}
+  - {type: move, point: p4, spin: true, posture: 3}
+  - {type: move, point: p5, spin: true, posture: 3}
   - {type: move, point: supply, spin: true, posture: 3}
   - {type: stay, point: supply, time: 5, spin: false, posture: 1}
+
+  # 补给区 -> 起伏路段 -> 中央高地
+  - {type: move, point: c1, spin: false, posture: 3}
+  - {type: move, point: c2, spin: true, posture: 3}
+  - {type: move, point: center, spin: false, posture: 3}
+  - {type: stay, point: center, time: 20, spin: false, posture: 1, deadline: 180}
+
+  # 中央高地 -> 补给区
+  - {type: move, point: c2, spin: false, posture: 3}
+  - {type: move, point: c1, spin: true, posture: 3}
+  - {type: move, point: supply, spin: false, posture: 3}
+  - {type: stay, point: supply, time: 5, spin: false, posture: 1, wait_until: 60}
+
+  # 补给区 -> 梯形高地
+  - {type: move, point: p5, spin: true, posture: 3}
+  - {type: move, point: p4, spin: true, posture: 3}
+  - {type: move, point: p3, spin: true, posture: 3}
+  - {type: move, point: p2, spin: true, posture: 3}
+  - {type: move, point: p1, spin: true, posture: 3}
+  - {type: move, point: t1, spin: false, posture: 3}
+  - {type: move, point: trap, spin: true, posture: 3}
+  - {type: stay, point: trap, time: 20, spin: false, posture: 1, deadline: 180}
+
+  # 梯形高地 -> 补给区
+  - {type: move, point: t1, spin: true, posture: 3}
+  - {type: move, point: p1, spin: false, posture: 3}
+  - {type: move, point: p2, spin: true, posture: 3}
+  - {type: move, point: p3, spin: true, posture: 3}
+  - {type: move, point: p4, spin: true, posture: 3}
+  - {type: move, point: p5, spin: true, posture: 3}
+  - {type: move, point: supply, spin: true, posture: 3}
+  - {type: stay, point: supply, time: 5, spin: false, posture: 1, wait_until: 120}
+
+  # 补给区 -> 地堡 (last 2 minutes, stay while spinning)
+  - {type: move, point: p5, spin: true, posture: 3}
+  - {type: move, point: p4, spin: true, posture: 3}
+  - {type: move, point: p3, spin: true, posture: 3}
+  - {type: move, point: p2, spin: true, posture: 3}
+  - {type: move, point: b1, spin: true, posture: 3}
+  - {type: move, point: bunker, spin: false, posture: 3}
+  - {type: stay, point: bunker, time: 20, spin: true, posture: 1, wait_until: 180}
+
+  # 地堡 -> 补给区
+  - {type: move, point: b1, spin: true, posture: 3}
+  - {type: move, point: p2, spin: true, posture: 3}
+  - {type: move, point: p3, spin: true, posture: 3}
+  - {type: move, point: p4, spin: true, posture: 3}
+  - {type: move, point: p5, spin: true, posture: 3}
+  - {type: move, point: supply, spin: true, posture: 3}
+  - {type: stay, point: supply, time: 5, spin: false, posture: 1, wait_until: 240}
