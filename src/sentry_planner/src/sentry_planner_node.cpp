@@ -20,6 +20,7 @@ SentryPlannerNode::SentryPlannerNode(std::string name):Node(name){
     max_speed = this->declare_parameter<double>("max_speed", 0.5);
     goal_tolerance = this->declare_parameter<double>("goal_tolerance", 0.1);
     spin_speed = this->declare_parameter<double>("spin_speed", 3.0);
+    yaw_offset = this->declare_parameter<double>("yaw_offset", 0.0);
 
     info_log(name, "has been built! Parameters: ", max_speed, goal_tolerance, spin_speed);
 }
@@ -33,7 +34,7 @@ void SentryPlannerNode::ChassisInfoCallback(const ChassisDataMsg::SharedPtr msg)
 void SentryPlannerNode::OdomCallBack(const OdomMsg::SharedPtr msg) {
     odom_x = msg->pose.pose.position.x;
     odom_y = msg->pose.pose.position.y;
-    odom_yaw = tf2::getYaw(msg->pose.pose.orientation);
+    odom_yaw = tf2::getYaw(msg->pose.pose.orientation) + yaw_offset;
     has_odom = true;
 }
 
@@ -81,6 +82,7 @@ void SentryPlannerNode::TimerCallback() {
     
     publisher_->publish(message);
     RCLCPP_INFO_THROTTLE(this->get_logger(), *this->get_clock(), 1000,
-    "goal (%.1f, %.1f) dist %.2f | v %.2f %.2f w %.1f",
-    target_x, target_y, dist, message.vx, message.vy, message.wz);
+    "goal (%.1f, %.1f) dist %.2f | v %.2f %.2f w %.1f | pos %.2f %.2f yaw %.2f",
+    target_x, target_y, dist, message.vx, message.vy, message.wz,
+    odom_x, odom_y, odom_yaw);
 }

@@ -7,6 +7,7 @@
 goal_tolerance: 0.2      # m, distance at which the goal counts as reached
 stay_margin: 1.0         # s, extra time added to each stay
 use_game_time: false     # no match running during training -> ignore match time
+field_rotation: -1.5708
 
 points:
   # corridor from start down to 补给区
@@ -41,19 +42,19 @@ tasks:
   - {type: move, point: p4, spin: true, posture: 3}
   - {type: move, point: p5, spin: true, posture: 3}
   - {type: move, point: supply, spin: true, posture: 3}
-  - {type: stay, point: supply, time: 5, spin: false, posture: 1}
+  - {type: stay, point: supply, time: 3, spin: false, posture: 1}
 
   # 补给区 -> 起伏路段 -> 中央高地
   - {type: move, point: c1, spin: false, posture: 3}
   - {type: move, point: c2, spin: true, posture: 3}
   - {type: move, point: center, spin: false, posture: 3}
-  - {type: stay, point: center, time: 20, spin: false, posture: 1, deadline: 180}
+  - {type: stay, point: center, time: 3, spin: false, posture: 1, deadline: 180}
 
   # 中央高地 -> 补给区
   - {type: move, point: c2, spin: false, posture: 3}
   - {type: move, point: c1, spin: true, posture: 3}
   - {type: move, point: supply, spin: false, posture: 3}
-  - {type: stay, point: supply, time: 5, spin: false, posture: 1, wait_until: 60}
+  - {type: stay, point: supply, time: 3, spin: false, posture: 1, wait_until: 60}
 
   # 补给区 -> 梯形高地
   - {type: move, point: p5, spin: true, posture: 3}
@@ -63,7 +64,7 @@ tasks:
   - {type: move, point: p1, spin: true, posture: 3}
   - {type: move, point: t1, spin: false, posture: 3}
   - {type: move, point: trap, spin: true, posture: 3}
-  - {type: stay, point: trap, time: 20, spin: false, posture: 1, deadline: 180}
+  - {type: stay, point: trap, time: 3, spin: false, posture: 1, deadline: 180}
 
   # 梯形高地 -> 补给区
   - {type: move, point: t1, spin: true, posture: 3}
@@ -73,7 +74,7 @@ tasks:
   - {type: move, point: p4, spin: true, posture: 3}
   - {type: move, point: p5, spin: true, posture: 3}
   - {type: move, point: supply, spin: true, posture: 3}
-  - {type: stay, point: supply, time: 5, spin: false, posture: 1, wait_until: 120}
+  - {type: stay, point: supply, time: 3, spin: false, posture: 1, wait_until: 120}
 
   # 补给区 -> 地堡 (last 2 minutes, stay while spinning)
   - {type: move, point: p5, spin: true, posture: 3}
@@ -82,7 +83,7 @@ tasks:
   - {type: move, point: p2, spin: true, posture: 3}
   - {type: move, point: b1, spin: true, posture: 3}
   - {type: move, point: bunker, spin: false, posture: 3}
-  - {type: stay, point: bunker, time: 20, spin: true, posture: 1, wait_until: 180}
+  - {type: stay, point: bunker, time: 3, spin: true, posture: 1, wait_until: 180}
 
   # 地堡 -> 补给区
   - {type: move, point: b1, spin: true, posture: 3}
@@ -91,4 +92,4 @@ tasks:
   - {type: move, point: p4, spin: true, posture: 3}
   - {type: move, point: p5, spin: true, posture: 3}
   - {type: move, point: supply, spin: true, posture: 3}
-  - {type: stay, point: supply, time: 5, spin: false, posture: 1, wait_until: 240}
+  - {type: stay, point: supply, time: 3, spin: false, posture: 1, wait_until: 240}

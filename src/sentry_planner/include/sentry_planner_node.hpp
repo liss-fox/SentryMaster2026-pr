@@ -10,6 +10,7 @@ private:
     bool is_spinning {}, has_odom {}, has_target {};
 
     double odom_x {}, odom_y {}, odom_yaw {};
+    double yaw_offset {};
 
     rclcpp::Subscription<OdomMsg>::SharedPtr odom_suber;
     rclcpp::Subscription<ChassisDataMsg>::SharedPtr chassis_data_suber;

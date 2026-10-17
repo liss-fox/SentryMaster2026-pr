@@ -24,7 +24,10 @@ class DecisionNode(Node):
         with open(config_path) as f:
             data = yaml.safe_load(f)
 
-        self.points = data["points"]
+        rot = data.get("field_rotation", 0.0)
+        c, s = math.cos(rot), math.sin(rot)
+        self.points = {name: (c * x - s * y, s * x + c * y)
+                    for name, (x, y) in data["points"].items()}
         self.tasks = data["tasks"]
         self.goal_tolerance = data["goal_tolerance"]
         self.stay_margin = data["stay_margin"]

@@ -8,6 +8,7 @@ Transfer::Transfer(rclcpp::Node *node, std::shared_ptr<serial::Serial> _serial_p
     chassis_puber = node->create_publisher<ChassisMsg>("chassis_data", 10);
 
     chassis_control.sentry_posture = 3;
+    chassis_control.ph1 = 4;
     planner_message_suber = node->create_subscription<PlannerToDriverMsg>("/planner_to_driver", 10, std::bind(&Transfer::PlannerMessageCallBack, this, std::placeholders::_1));
     decision_message_suber = node->create_subscription<DecisionToDriverMsg>("/decision_to_driver", 10, std::bind(&Transfer::DecisionMessageCallBack, this, std::placeholders::_1));
 }
