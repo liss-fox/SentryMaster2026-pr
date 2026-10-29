@@ -12,6 +12,10 @@ private:
     double odom_x {}, odom_y {}, odom_yaw {};
     double yaw_offset {};
 
+    double yaw0 = 0.0;
+    bool has_yaw0 = false;
+    double heading_kp;
+
     rclcpp::Subscription<OdomMsg>::SharedPtr odom_suber;
     rclcpp::Subscription<ChassisDataMsg>::SharedPtr chassis_data_suber;
     rclcpp::Subscription<DecisionToPlannerMsg>::SharedPtr decision_suber;

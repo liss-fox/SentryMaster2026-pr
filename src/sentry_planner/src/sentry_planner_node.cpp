@@ -1,4 +1,5 @@
 #include "sentry_planner_node.hpp"
+#include <algorithm>
 
 using namespace std::chrono_literals;
 
@@ -21,6 +22,7 @@ SentryPlannerNode::SentryPlannerNode(std::string name):Node(name){
     goal_tolerance = this->declare_parameter<double>("goal_tolerance", 0.1);
     spin_speed = this->declare_parameter<double>("spin_speed", 3.0);
     yaw_offset = this->declare_parameter<double>("yaw_offset", 0.0);
+    heading_kp = this->declare_parameter<double>("heading_kp", 0.0);
 
     info_log(name, "has been built! Parameters: ", max_speed, goal_tolerance, spin_speed);
 }
@@ -35,6 +37,7 @@ void SentryPlannerNode::OdomCallBack(const OdomMsg::SharedPtr msg) {
     odom_x = msg->pose.pose.position.x;
     odom_y = msg->pose.pose.position.y;
     odom_yaw = tf2::getYaw(msg->pose.pose.orientation) + yaw_offset;
+    if (!has_yaw0) { yaw0 = odom_yaw; has_yaw0 = true; }
     has_odom = true;
 }
 
@@ -73,11 +76,11 @@ void SentryPlannerNode::TimerCallback() {
         message.vy = -std::sin(odom_yaw) * vx_field + std::cos(odom_yaw) * vy_field;
     }
 
-    if (is_spinning == true){
+    if (is_spinning) {
         message.wz = spin_speed;
-    }
-    else {
-        message.wz = 0.0;
+    } else {
+        double e = std::atan2(std::sin(yaw0 - odom_yaw), std::cos(yaw0 - odom_yaw));
+        message.wz = std::clamp(heading_kp * e, -1.0, 1.0);
     }
     
     publisher_->publish(message);
