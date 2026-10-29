@@ -1,44 +1,47 @@
-# SentryMaster2026 工作空间
+# SentryMaster 2026 — Autonomous Sentry Robot
 
-### 1.官方提供环境（不用去修改）
-- **odin_ros_driver** Odin1空间感知模块驱动节点，会输出一个固定的里程计话题，里面包含了Odin1原点坐标系下机器人相对于启动点的位姿信息。同时Odin1还会输出原始的点云、IMU和图像数据。
+Autonomous swerve-drive robot for **SentryMaster 2026**, the freshman algorithm competition of the HITSZ RoboMaster team (南工骁鹰). The robot plays a full 5-minute match on its own: it drives between scoring zones, holds position, and spins in place where the rules require it.
 
-- **sentry_launch** 启动脚本功能包，启动时会自动启动所有需要的模块，同时会创建Odin1到机器人中心坐标系的坐标变换发布，每个功能包的参数在模块对应的功能包内的config/文件夹下，不需要在启动脚本功能包下修改。
+Built on ROS 2 Kilted (Ubuntu 24.04). Based on the organizers' workspace [QxhhhQ/SentryMaster2026](https://github.com/QxhhhQ/SentryMaster2026); my work is on the `dev` branch.
 
-- **场地地图** 在sentry_planner下有一个/map文件夹，里面包含场地的点云地图和2D投影地图，可以直接作为导航地图使用。
+## Architecture
 
-- **部分框架**
-    - rm_msgs 的裁判系统数据、底盘数据 ROS2 msg 接口
-    - sentry_planner 的接收者部分，会自动接收里程计和裁判系统 topic 数据
-    - sentry_decision 的接收者部分，会自动接收里程计、裁判系统数据和底盘 topic 数据
-    - uart_driver 的发布者部分，会自动接收来自电控的底盘和裁判系统 USB 数据，然后转发成ROS2 topic数据
+```
+decision (Python)  ──/decision_to_planner──▶  planner (C++)  ──/planner_to_driver──▶  uart_driver (C++)  ──serial──▶  chassis
+       ▲                                           ▲
+   decision.yaml                         /odin1/odometry_highfreq (Odin1 lidar odometry)
+```
 
-### 2.需要完成
-**需求分析**
-- 根据比赛规则，分析哨兵机器人需要完成什么任务，每个任务由哪几个基本的控制接口组成，哪个节点负责得出什么控制指令
+- **decision** — reads waypoints and a task list (`move` / `stay`) from YAML and sends the current target to the planner.
+- **planner** — drives straight toward the target, converts field-frame velocity into robot-frame velocity, holds heading with a P-controller, and spins on command.
+- **uart_driver** — converts m/s and rad/s into the chassis protocol and sends it over the serial port.
 
-**rm_msgs**
-- 决策节点给 **导航节点** 发布控制指令的 ROS2 msg 接口
-- 导航节点给 **USB 驱动节点** 发布速度控制指令的 ROS2 msg 接口
-- 决策节点给 **USB 驱动节点** 发布姿态控制指令的 ROS2 msg 接口
+Custom messages in `rm_msgs`: `DecisionToPlanner` (x, y, is_spinning), `PlannerToDriver` (vx, vy, wz), `DecisionToDriver` (posture).
 
-**uart_driver**
-- 接收导航节点和决策节点的 ROS2 topic 数据的接收者 
-- 将接收到的 topic 数据整合到一个给定的**ChassisControl**结构体中，然后发送给电控，发送方式参考该功能包下的struct_def.hpp文件
+## What I did
 
-**sentry_decision_sys** 
-- 处理接收者收到的里程计、底盘、裁判系统数据
-- 自行设计决策算法给导航节点和 USB 驱动节点发布 ROS2 topic 数据
+- Designed the message interfaces and the decision → planner → driver pipeline
+- Wrote the planner: goal tracking, field-to-robot frame rotation, spinning mode, heading hold
+- Wrote the decision node: waypoints and task sequence configured from YAML
+- Fixed the workspace for ROS 2 Kilted (dependencies, launch issues)
+- Calibrated on the real field: Odin1 is mounted upside down, so I added `yaw_offset` and `field_rotation`; measured the field and tuned the route
+- Added `run.sh` for runs with logs and rosbag recording
 
-**sentry_planner** 导航节点功能包
-- 处理接收者收到的里程计、底盘、决策数据
-- 自行设计导航算法给 USB 驱动节点发布 ROS2 topic 数据
+## Result
 
-### 3.整体数据流
-![image](flow.png)
+The robot drove the full route autonomously on the official field — one of only two teams whose robot moved on its own. After the competition I was accepted into the team's Sentry group.
 
-### 4.启动方式
-- 命令行进入 scripts/ 文件夹下面，输入 `bash build.sh` 一键编译所有节点，输入 `bash chassis.sh`一键启动所有节点
+## Build and run
 
-### 5.注意事项
-本工作空间不代表最终比赛版本，请使用 **git** 创建新的分支，然后再进行比赛代码开发。工作空间的补丁（一般是上述第一大点中内容的修补，不会影响需要参赛人开发的内容）都会通过 GitHub 仓库 **main** 分支进行同步，如果因为 git 操作失误导致不能同步到最新比赛版本的后果自负
+```bash
+./scripts/build.sh      # or: colcon build --packages-select <pkg>
+./scripts/chassis.sh    # start
+./scripts/run.sh        # start with logs + rosbag (~/sentry_logs/<date>/)
+```
+
+Main parameters: `src/sentry_planner/config/global_planning.yaml`, route and tasks: `src/sentry_decision_sys/config/decision.yaml`.
+
+## Credits
+
+- Workspace template and competition: [QxhhhQ/SentryMaster2026](https://github.com/QxhhhQ/SentryMaster2026)
+- `odin_ros_driver` — © Manifold Tech Ltd., Apache License 2.0
