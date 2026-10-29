@@ -1,0 +1,55 @@
+# SentryMaster 2026 — decision (match plan, no 起伏路段 / 中央高地)
+# Start: 启动区, robot facing the center of the field.
+# Field frame: X toward the center, Y up on the map, start = (0, 0). Meters.
+# Plan: 梯形高地 (75) -> 补给区 (30) -> 地堡 with spin (120)
+
+goal_tolerance: 0.2      # m, distance at which the goal counts as reached
+stay_margin: 1.0         # s, extra time added to each stay
+use_game_time: false
+field_rotation: -1.5708  # odin1 frame -> field frame (verified on field 17.10)
+
+points:
+  # corridor from start down to 补给区 (pairs aligned so legs run straight)
+  p1: [1.8, 0.0]         # right of start, past 地堡; slope to 梯形高地 starts here
+  p2: [1.8, -4.6]        # down along the pillars (1.8 reached OK on 17.10)
+  p3: [3.5, -4.6]
+  p4: [3.5, -5.7]
+  p5: [0.1, -5.7]        # left along the beam
+  supply: [0.1, -8.0]    # 补给区
+
+  # slope -> 梯形高地
+  t1: [4.3, 3.2]         # top of the slope
+  trap: [0.9, 4.1]       # 梯形高地
+
+  # 地堡, approach from below
+  b1: [0.65, -3.5]       # below 地堡
+  bunker: [0.65, -1.65]  # center of 地堡
+
+# posture: 3 = 移动 (moving), 1 = 得分 (score x1.5)
+# spin only on 地堡 (required there); everything else without spin
+tasks:
+  # start -> 梯形高地 (must be done in the first 3 min)
+  - {type: move, point: p1, spin: false, posture: 3}
+  - {type: move, point: t1, spin: false, posture: 3}
+  - {type: move, point: trap, spin: false, posture: 3}
+  - {type: stay, point: trap, time: 3, spin: false, posture: 1}
+
+  # 梯形高地 -> 补给区
+  - {type: move, point: t1, spin: false, posture: 3}
+  - {type: move, point: p1, spin: false, posture: 3}
+  - {type: move, point: p2, spin: false, posture: 3}
+  - {type: move, point: p3, spin: false, posture: 3}
+  - {type: move, point: p4, spin: false, posture: 3}
+  - {type: move, point: p5, spin: false, posture: 3}
+  - {type: move, point: supply, spin: false, posture: 3}
+  - {type: stay, point: supply, time: 3, spin: false, posture: 1}
+
+  # 补给区 -> 地堡 (counts only in the last 2 min, so stay long: 60 s
+  # covers 20 s after t=180 even if we arrive early; wait_until not implemented)
+  - {type: move, point: p5, spin: false, posture: 3}
+  - {type: move, point: p4, spin: false, posture: 3}
+  - {type: move, point: p3, spin: false, posture: 3}
+  - {type: move, point: p2, spin: false, posture: 3}
+  - {type: move, point: b1, spin: false, posture: 3}
+  - {type: move, point: bunker, spin: false, posture: 3}
+  - {type: stay, point: bunker, time: 3, spin: true, posture: 1}
